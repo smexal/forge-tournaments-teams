@@ -5,8 +5,10 @@ use Forge\Core\Abstracts\Module;
 use Forge\Core\App\App;
 use Forge\Core\App\Auth;
 use Forge\Core\App\ModifyHandler;
+use Forge\Core\Classes\Relations\CollectionRelation;
 use Forge\Core\Classes\Settings;
 use Forge\Core\Classes\Utils;
+use Forge\Core\Classes\Relations\Enums\Directions;
 
 
 class ForgeTournamentsteams extends Module {
@@ -22,6 +24,17 @@ class ForgeTournamentsteams extends Module {
 
     public function start() {
         App::instance()->tm->theme->addStyle(MOD_ROOT.'forge-tournaments-teams/assets/css/teams.less');
+
+        \registerModifier('Forge/Core/RelationDirectory/collectRelations', function($existing) {
+            return array_merge($existing, [
+                'ftt_organization_teams' => new CollectionRelation(
+                    'ftt_organization_teams', 
+                    'forge-organizations', 
+                    'forge-teams', 
+                    Directions::DIRECTED
+                )
+            ]);
+        });
 
         $this->install();
         ModifyHandler::instance()->add('modify_manage_navigation', [$this, 'modifyManageNavigation']);

@@ -3,7 +3,11 @@
 namespace Forge\Modules\TournamentsTeams;
 
 use Forge\Core\Abstracts\DataCollection;
+use Forge\Core\App\App;
 use Forge\Core\App\Auth;
+use Forge\Core\App\ModifyHandler;
+use Forge\Core\Classes\Media;
+use Forge\Core\Classes\User;
 use Forge\Core\Classes\Utils;
 
 class OrganizationsCollection extends DataCollection {
@@ -20,11 +24,64 @@ class OrganizationsCollection extends DataCollection {
         $this->custom_fields();
     }
 
+    public function render($item) {
+        $img = new Media($item->getMeta('logo'));
+        $ownerUser = new User($item->getAuthor());
+        return App::instance()->render(MOD_ROOT.'forge-tournaments-teams/templates/', 'organization-detail', [
+            'title' => $item->getMeta('title'),
+            'description' => $item->getMeta('description'),
+            'website_label' => i('Website', 'ftt'),
+            'website_value' => $item->getMeta('website') ? $item->getMeta('website') : i('None', 'ftt'),
+            'shorttag_label' => i('Shorttag', 'ftt'),
+            'shorttag_value' => $item->getMeta('shorttag'),
+            'members_label' => i('Members', 'ftt'),
+            'members_value' => 1,
+            'owner_value' => $ownerUser->get('username'),
+            'owner_label' => i('Owner', 'ftt'),
+            'team_image' => $img ? $img->getSizedImage(420, 280) : false,
+            'tabs' => $this->getTeamTabs($item)
+        ]);
+    }
+
+    private function getTeamTabs($item) {
+        $tabs =  [
+            [
+                'active' => true,
+                'key' => 'all_members',
+                'name' => i('All Members', 'ftt')
+            ],
+        ];
+
+        if(App::instance()->user->get('id') == $item->getAuthor()) {
+            $tabs[] = [
+                'active' => false,
+                'key' => 'create',
+                'name' => i('Create Team', 'ftt')
+            ];
+        }
+
+        return App::instance()->render(CORE_TEMPLATE_DIR."assets/", "tabs", [
+            'tabs' => $tabs,
+            'tabs_content' => [
+                [
+                    'id' => 'all_members',
+                    'active' => true,
+                    'content' => 'yes'
+                ],
+                [
+                    'id' => 'create',
+                    'active' => false,
+                    'content' => 'nope'
+                ]
+            ]
+        ]);
+    } 
+
     private function custom_fields() {
         $this->addFields([
             [
                 'key' => 'shorttag',
-                'label' => i('Tag', 'forge-organizations'),
+                'label' => i('Tag', 'ftt'),
                 'multilang' => false,
                 'type' => 'text',
                 'order' => 30,
@@ -33,7 +90,7 @@ class OrganizationsCollection extends DataCollection {
             ],
             [
                 'key' => 'website',
-                'label' => i('Website', 'forge-organizations'),
+                'label' => i('Website', 'ftt'),
                 'multilang' => false,
                 'type' => 'text',
                 'order' => 31,
@@ -42,14 +99,48 @@ class OrganizationsCollection extends DataCollection {
             ],
             [
                 'key' => 'logo',
-                'label' => i('Teamlogo', 'forge-organizations'),
+                'label' => i('Teamlogo', 'ftt'),
                 'multilang' => false,
                 'type' => 'image',
                 'order' => 32,
                 'position' => 'right',
                 'hint' => ''
-            ]
+            ],
+            [
+                'key' => 'ftt_organization_teams',
+                'label' => \i('Teams', 'ftt'),
+                'values' => [],
+                'value' => NULL,
+                'multilang' => false,
+                'type' => 'collection',
+                'maxtags'=> 1,
+                'collection' => 'forge-teams',
+                'data_source_save' => 'relation',
+                'data_source_load' => 'relation',
+                'relation' => [
+                    'identifier' => 'ftt_organization_teams'
+                ],
+
+                'order' => 10,
+                'position' => 'left',
+                'readonly' => false,
+                'hint' => i('Assigned Teams for this organization', 'ftt')
+            ],
         ]);
+        ModifyHandler::instance()->add(
+            'Core/Manage/modifiyDefaultFields',
+            function($fields, $name) {
+                //$fields['title']['multilang'] = false;
+                if($name == 'forge-organizations') {
+                    // title
+                    $fields[0]['multilang'] = false;
+
+                    // description
+                    $fields[1]['multilang'] = false;
+                }
+                return $fields;
+            }
+        );
     }
 
     /**
@@ -60,7 +151,7 @@ class OrganizationsCollection extends DataCollection {
         return [
             [
                 'url' => 'teams',
-                'title' => i('Teams', 'forge-organizations')
+                'title' => i('Teams', 'ftt')
             ]
         ];
     }

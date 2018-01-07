@@ -34,10 +34,10 @@ class TeamsView extends View {
         $teams = $this->getTeams();
 
         return $navigation.App::instance()->render(MOD_ROOT.'forge-tournaments-teams/templates/', 'teams', [
-            'title' => i('Overview', 'ftt'),
-            'create_team_label' => i('Create a team', 'ftt'),
+            'title' => i('Your Organizations', 'ftt'),
+            'create_team_label' => i('Create organization', 'ftt'),
             'create_team_link' => CoreUtils::url(['teams', 'create']),
-            'search_team_label' => i('Search a team', 'ftt'),
+            'search_team_label' => i('Search', 'ftt'),
             'close_url' => CoreUtils::getCurrentUrl(),
             'teams' => $teams
         ]);

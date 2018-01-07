@@ -1,0 +1,42 @@
+<div id="organization-detail" class="wrapper">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="row">
+                <div class="col-lg-12">
+                    <h1>{$title}</h1>
+                    <p>{$description}</p>
+                </div>
+            </div>
+            <div class="row facts">
+                <div class="col-lg-6">
+                    <p class="discreet">{$members_label}</p>
+                    <h3>{$members_value}</h3>
+                </div>
+                <div class="col-lg-6">
+                    <p class="discreet">{$website_label}</p>
+                    <h3><a href="{$website_value}" target="_blank">{$website_value}</a></h3>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-6">
+                    <p class="discreet">{$shorttag_label}</p>
+                    <h3>{$shorttag_value}</h3>
+                </div>
+                <div class="col-lg-6">
+                    <p class="discreet">{$owner_label}</p>
+                    <h3>{$owner_value}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="image">
+                {if="$team_image"}<img src="{$team_image}" />{/if}
+            </div>
+        </div>
+    </div>
+    <div class="row member-tabs">
+        <div class="col-lg-12">
+            {$tabs}
+        </div>
+    </div>
+</div>

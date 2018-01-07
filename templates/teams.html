@@ -1,0 +1,42 @@
+<div id="teams">
+    <div class="overview wrapper">
+        <div class="row">
+            <div class="col-lg-2"></div>
+            <div class="col-lg-8">
+                <h1>{$title}</h1>
+            </div>
+        </div>
+        <div class="row team-listing">
+            <div class="col-lg-2"></div>
+            <div class="col-lg-8">
+            {loop="$teams"}
+                <a class="team" href="{$value.url}">
+                    <div class="image">
+                        <img src="{$value.image}" />
+                    </div>
+                    <h3>{$value.title}</h3>
+                </a>
+            {/loop}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-2"></div>
+            <div class="col-lg-4 add-team">
+                <div class="row">
+                    <div class="col-lg-6">
+                        <a href="{$create_team_link}" class="to-overlay" refresh-on-close="{$close_url}" refresh-target="#teams">
+                            <i class="icon ion-ios-plus-empty"></i>
+                            <span class="cta-light">{$create_team_label}</span>
+                        </a>
+                    </div>
+                    <div class="col-lg-6">
+                        <a href="#" class="to-overlay">
+                            <i class="icon ion-ios-search"></i>
+                            <span class="cta-light">{$search_team_label}</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

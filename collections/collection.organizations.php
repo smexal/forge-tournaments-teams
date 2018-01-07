@@ -32,11 +32,20 @@ class OrganizationsCollection extends DataCollection {
                 'hint' => ''
             ],
             [
+                'key' => 'website',
+                'label' => i('Website', 'forge-organizations'),
+                'multilang' => false,
+                'type' => 'text',
+                'order' => 31,
+                'position' => 'right',
+                'hint' => ''
+            ],
+            [
                 'key' => 'logo',
                 'label' => i('Teamlogo', 'forge-organizations'),
                 'multilang' => false,
                 'type' => 'image',
-                'order' => 30,
+                'order' => 32,
                 'position' => 'right',
                 'hint' => ''
             ]

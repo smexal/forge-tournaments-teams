@@ -21,6 +21,8 @@ class ForgeTournamentsteams extends Module {
     }
 
     public function start() {
+        App::instance()->tm->theme->addStyle(MOD_ROOT.'forge-tournaments-teams/assets/css/teams.less');
+
         $this->install();
         ModifyHandler::instance()->add('modify_manage_navigation', [$this, 'modifyManageNavigation']);
     }

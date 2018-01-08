@@ -36,6 +36,28 @@ class ForgeTournamentsteams extends Module {
             ]);
         });
 
+        \registerModifier('Forge/Core/RelationDirectory/collectRelations', function($existing) {
+            return array_merge($existing, [
+                'ftt_teams_members' => new CollectionRelation(
+                    'ftt_teams_members', 
+                    'forge-teams', 
+                    'forge-members', 
+                    Directions::DIRECTED
+                )
+            ]);
+        });
+
+        \registerModifier('Forge/Core/RelationDirectory/collectRelations', function($existing) {
+            return array_merge($existing, [
+                'ftt_organization_members' => new CollectionRelation(
+                    'ftt_organization_members', 
+                    'forge-organizations', 
+                    'forge-members', 
+                    Directions::DIRECTED
+                )
+            ]);
+        });
+
         $this->install();
         ModifyHandler::instance()->add('modify_manage_navigation', [$this, 'modifyManageNavigation']);
     }
@@ -48,6 +70,7 @@ class ForgeTournamentsteams extends Module {
         Auth::registerPermissions("manage.collection.teams");
         Auth::registerPermissions("manage.collection.organizations");
 
+        /*
         App::instance()->db->rawQuery('CREATE TABLE IF NOT EXISTS `forge_teams_members` (' .
             '`id` int(11) NOT NULL,' .
             '`team_id` int(11) NOT NULL,' .
@@ -68,6 +91,7 @@ class ForgeTournamentsteams extends Module {
 
         App::instance()->db->rawQuery('ALTER TABLE `forge_organizations_teams` ADD PRIMARY KEY (`id`), ADD KEY `organization_id` (`organization_id`), ADD KEY `team_id` (`team_id`);');
         App::instance()->db->rawQuery('ALTER TABLE `forge_organizations_teams` MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1');
+        */
 
         Settings::set($this->name . ".installed", 1);
     }
@@ -75,6 +99,7 @@ class ForgeTournamentsteams extends Module {
     public function modifyManageNavigation($navigation) {
         if (Auth::allowed('manage.collection.teams')) {
             $navigation->removeFromCollections('forge-teams');
+            //$navigation->removeFromCollections('forge-members');
         }
         if (Auth::allowed('manage.collection.organizations')) {
             $navigation->removeFromCollections('forge-organizations');

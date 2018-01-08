@@ -124,7 +124,7 @@ class TeamsView extends View {
             'label' => i('Website', 'ftt'),
             'key' => 'team_website',
         ]);
-        $content[] = Fields::button(i('Create team', 'ftt'));
+        $content[] = Fields::button(i('Create organzation', 'ftt'));
         return '<div class="wrapper">'.$heading.App::instance()->render(CORE_TEMPLATE_DIR.'assets/', 'form', [
             'action' => CoreUtils::getCurrentUrl(),
             'method' => 'post',

@@ -6,6 +6,7 @@ use Forge\Core\Abstracts\DataCollection;
 use Forge\Core\App\App;
 use Forge\Core\App\Auth;
 use Forge\Core\App\ModifyHandler;
+use Forge\Core\Classes\Fields;
 use Forge\Core\Classes\Media;
 use Forge\Core\Classes\User;
 use Forge\Core\Classes\Utils;
@@ -21,12 +22,36 @@ class OrganizationsCollection extends DataCollection {
         $this->preferences['single-item'] = i('Organization', 'forge-organizations');
         $this->preferences['multilang'] = false;
 
+        Auth::registerPermissions('api.collection.forge-organizations.read');
+
         $this->custom_fields();
+    }
+
+    private function isOwner($item) {
+        if(Auth::any() && App::instance()->user->get('id') == $item->getAuthor()) {
+            return true;
+        }
+        return;
     }
 
     public function render($item) {
         $img = new Media($item->getMeta('logo'));
         $ownerUser = new User($item->getAuthor());
+
+        $url_parts = Utils::getUriComponents();
+        if(count($url_parts) > 3 && $url_parts[3] == 'create') {
+            if($this->isOwner($item)) {
+                return $this->createTeamContent();
+            } else {
+                App::instance()->redirect('denied');
+            }
+        }
+
+        $actions = false;
+        if($this->isOwner($item)) {
+            $actions = true;
+        }
+
         return App::instance()->render(MOD_ROOT.'forge-tournaments-teams/templates/', 'organization-detail', [
             'title' => $item->getMeta('title'),
             'description' => $item->getMeta('description'),
@@ -39,7 +64,10 @@ class OrganizationsCollection extends DataCollection {
             'owner_value' => $ownerUser->get('username'),
             'owner_label' => i('Owner', 'ftt'),
             'team_image' => $img ? $img->getSizedImage(420, 280) : false,
-            'tabs' => $this->getTeamTabs($item)
+            'tabs' => $this->getTeamTabs($item),
+            'actions' => $actions,
+            'create_team_label' => i('Create team'),
+            'create_team_url' => Utils::getCurrentUrl().'/create'
         ]);
     }
 
@@ -48,17 +76,9 @@ class OrganizationsCollection extends DataCollection {
             [
                 'active' => true,
                 'key' => 'all_members',
-                'name' => i('All Members', 'ftt')
+                'name' => i('Members', 'ftt')
             ],
         ];
-
-        if(App::instance()->user->get('id') == $item->getAuthor()) {
-            $tabs[] = [
-                'active' => false,
-                'key' => 'create',
-                'name' => i('Create Team', 'ftt')
-            ];
-        }
 
         return App::instance()->render(CORE_TEMPLATE_DIR."assets/", "tabs", [
             'tabs' => $tabs,
@@ -67,15 +87,34 @@ class OrganizationsCollection extends DataCollection {
                     'id' => 'all_members',
                     'active' => true,
                     'content' => 'yes'
-                ],
-                [
-                    'id' => 'create',
-                    'active' => false,
-                    'content' => 'nope'
                 ]
             ]
         ]);
-    } 
+    }
+
+    private function createTeamContent() {
+        $heading = '<h3>'.i('Create a new Team', 'ftt').'</h3>';
+        $content = [];
+        $content[] = Fields::text([
+            'label' => i('Team Name', 'ftt'),
+            'key' => 'team_name',
+        ]);
+        /** tbd 
+        $content[] = Fields::repeater([
+            'label' => i('Define members', 'ftt'),
+            'subfields'
+        ]);
+        */
+
+        return '<div class="wrapper">'.$heading.App::instance()->render(CORE_TEMPLATE_DIR.'assets/', 'form', [
+            'action' => Utils::getCurrentUrl(),
+            'method' => 'post',
+            'ajax' => true,
+            'ajax_target' => '#slidein-overlay .ajax-content',
+            'horizontal' => false,
+            'content' => $content
+        ]).'</div>';
+    }
 
     private function custom_fields() {
         $this->addFields([
@@ -121,11 +160,31 @@ class OrganizationsCollection extends DataCollection {
                     'identifier' => 'ftt_organization_teams'
                 ],
 
-                'order' => 10,
+                'order' => 20,
                 'position' => 'left',
                 'readonly' => false,
                 'hint' => i('Assigned Teams for this organization', 'ftt')
             ],
+            [
+                'key' => 'ftt_organization_members',
+                'label' => \i('Organization Members', 'ftt'),
+                'values' => [],
+                'value' => NULL,
+                'multilang' => false,
+                'type' => 'collection',
+                'maxtags'=> 1,
+                'collection' => 'forge-members',
+                'data_source_save' => 'relation',
+                'data_source_load' => 'relation',
+                'relation' => [
+                    'identifier' => 'ftt_organization_members'
+                ],
+
+                'order' => 10,
+                'position' => 'left',
+                'readonly' => false,
+                'hint' => i('Assigned Members for this organization', 'ftt')
+            ]
         ]);
         ModifyHandler::instance()->add(
             'Core/Manage/modifiyDefaultFields',

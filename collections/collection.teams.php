@@ -16,6 +16,8 @@ class TeamsCollection extends DataCollection {
         $this->preferences['add-label'] = i('Add team', 'forge-teams');
         $this->preferences['single-item'] = i('Team', 'forge-teams');
 
+        Auth::registerPermissions('api.collection.forge-teams.read');
+
         $this->custom_fields();
     }
 
@@ -38,6 +40,25 @@ class TeamsCollection extends DataCollection {
                 'order' => 30,
                 'position' => 'right',
                 'hint' => ''
+            ],
+            [
+                'key' => 'ftt_teams_members',
+                'label' => \i('Team Members', 'ftt'),
+                'values' => [],
+                'value' => NULL,
+                'multilang' => false,
+                'type' => 'collection',
+                'maxtags'=> 1,
+                'collection' => 'forge-members',
+                'data_source_save' => 'relation',
+                'data_source_load' => 'relation',
+                'relation' => [
+                    'identifier' => 'ftt_teams_members'
+                ],
+                'order' => 10,
+                'position' => 'left',
+                'readonly' => true,
+                'hint' => i('Assigned Members for this organization', 'ftt')
             ]
         ]);
     }

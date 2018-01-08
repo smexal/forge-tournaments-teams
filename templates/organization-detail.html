@@ -7,6 +7,13 @@
                     <p>{$description}</p>
                 </div>
             </div>
+            {if="$actions"}
+            <div class="row actions">
+                <div class="col-lg-12">
+                    <button class="btn to-overlay" href="{$create_team_url}">{$create_team_label}</button>
+                </div>
+            </div>
+            {/if}
             <div class="row facts">
                 <div class="col-lg-6">
                     <p class="discreet">{$members_label}</p>

@@ -32,7 +32,7 @@
                         </a>
                     </div>
                     <div class="col-lg-6">
-                        <a href="#" class="to-overlay">
+                        <a href="<?php echo $search_team_link;?>" class="to-overlay">
                             <i class="icon ion-ios-search"></i>
                             <span class="cta-light"><?php echo $search_team_label;?></span>
                         </a>

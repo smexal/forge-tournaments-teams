@@ -159,8 +159,7 @@ class OrganizationsCollection extends DataCollection {
                 'relation' => [
                     'identifier' => 'ftt_organization_teams'
                 ],
-
-                'order' => 20,
+                'order' => 10,
                 'position' => 'left',
                 'readonly' => false,
                 'hint' => i('Assigned Teams for this organization', 'ftt')
@@ -179,11 +178,29 @@ class OrganizationsCollection extends DataCollection {
                 'relation' => [
                     'identifier' => 'ftt_organization_members'
                 ],
-
-                'order' => 10,
+                'order' => 20,
                 'position' => 'left',
                 'readonly' => false,
                 'hint' => i('Assigned Members for this organization', 'ftt')
+            ],
+            [
+                'key' => 'ftt_organization_join_requests',
+                'label' => \i('Organization Join Requests', 'ftt'),
+                'values' => [],
+                'value' => NULL,
+                'multilang' => false,
+                'type' => 'collection',
+                'maxtags'=> 1,
+                'collection' => 'forge-members',
+                'data_source_save' => 'relation',
+                'data_source_load' => 'relation',
+                'relation' => [
+                    'identifier' => 'ftt_organization_join_requests'
+                ],
+                'order' => 30,
+                'position' => 'left',
+                'readonly' => false,
+                'hint' => i('Join Requests for this organization', 'ftt')
             ]
         ]);
         ModifyHandler::instance()->add(

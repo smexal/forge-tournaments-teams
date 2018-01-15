@@ -6,9 +6,10 @@ use Forge\Core\App\App;
 use Forge\Core\App\Auth;
 use Forge\Core\App\ModifyHandler;
 use Forge\Core\Classes\Relations\CollectionRelation;
+use Forge\Core\Classes\Relations\Enums\Directions;
 use Forge\Core\Classes\Settings;
 use Forge\Core\Classes\Utils;
-use Forge\Core\Classes\Relations\Enums\Directions;
+use Forge\Loader;
 
 
 class ForgeTournamentsteams extends Module {
@@ -57,6 +58,19 @@ class ForgeTournamentsteams extends Module {
                 )
             ]);
         });
+
+        \registerModifier('Forge/Core/RelationDirectory/collectRelations', function($existing) {
+            return array_merge($existing, [
+                'ftt_organization_join_requests' => new CollectionRelation(
+                    'ftt_organization_join_requests', 
+                    'forge-organizations', 
+                    'forge-members', 
+                    Directions::DIRECTED
+                )
+            ]);
+        });
+
+        App::instance()->tm->theme->addScript($this->url() . "assets/scripts/ftt.js", true);
 
         $this->install();
         ModifyHandler::instance()->add('modify_manage_navigation', [$this, 'modifyManageNavigation']);

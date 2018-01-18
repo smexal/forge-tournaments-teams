@@ -34,7 +34,8 @@ class TeamsView extends View {
             $content.='<li>';
             $content.='<p>'.$item->getName().'</p>';
             $content.='<small>'.$u->get('username').'</small>';
-            $content.='<button class="btn">'.i('Join Request', 'ftt').'</button>';
+            $joinURL = $this->buildURL(['join_request', $item->getID()]);
+            $content.='<a href="'.$joinURL.'" class="btn">'.i('Join Request', 'ftt').'</a>';
             $content.='</li>';
         }
         $content.='</ul>';
@@ -56,6 +57,12 @@ class TeamsView extends View {
             }
 
             return $this->getCreateView();
+        }
+
+        if(count($parts) > 1 && $parts[1] == 'join_request' && is_numeric($parts[2]) ) {
+            $collection = App::instance()->cm->getCollection('forge-organizations');
+            $user = App::instance()->user;
+            $collection->joinRequest($parts[2], $user);
         }
 
         if(count($parts) > 1 && $parts[1] == 'search') {

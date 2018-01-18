@@ -8,6 +8,7 @@ use Forge\Core\App\Auth;
 use Forge\Core\App\ModifyHandler;
 use Forge\Core\Classes\Fields;
 use Forge\Core\Classes\Media;
+use Forge\Core\Classes\Relations\Enums\Prepares;
 use Forge\Core\Classes\User;
 use Forge\Core\Classes\Utils;
 
@@ -90,6 +91,27 @@ class OrganizationsCollection extends DataCollection {
                 ]
             ]
         ]);
+    }
+
+    public function joinRequest($item, $user) {
+        $item = $this->getItem($item);
+        $memberId = MembersCollection::createIfNotExists($user);
+
+        if(! in_array($memberId, $this->getJoinRequests($item))
+        && ! in_array($memberId, $this->getMembers($item))) {
+            $rel = App::instance()->rd->getRelation('ftt_organization_join_requests');
+            $rel->setRightItems($item->id, [$memberId]);
+        }
+    }
+
+    private function getJoinRequests($item) {
+        $relation = App::instance()->rd->getRelation('ftt_organization_join_requests');
+        return $relation->getOfLeft($item->id, Prepares::AS_IDS_RIGHT);        
+    }
+
+    private function getMembers($item) {
+        $relation = App::instance()->rd->getRelation('ftt_organization_members');
+        return $relation->getOfLeft($item->id, Prepares::AS_IDS_RIGHT);        
     }
 
     private function createTeamContent() {

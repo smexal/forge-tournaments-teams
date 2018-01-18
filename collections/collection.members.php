@@ -2,8 +2,10 @@
 
 namespace Forge\Modules\TournamentsTeams;
 
+use Forge\Core\Abstracts\CollectionQuery;
 use Forge\Core\Abstracts\DataCollection;
 use Forge\Core\App\Auth;
+use Forge\Core\Classes\CollectionItem;
 use Forge\Core\Classes\Relations\CollectionRelation;
 use Forge\Core\Classes\Relations\Enums\Directions;
 use Forge\Core\Classes\User;
@@ -42,6 +44,35 @@ class MembersCollection extends DataCollection {
                 'values' => $users
             ]
         ]);
+    }
+
+    public static function createIfNotExists($user) {
+
+        $found = CollectionQuery::items([
+            'author' => $user->get('id'),
+            'name' => 'forge-members'
+        ]);
+
+        // "member" item from this user already exists.
+        if(count($found) > 0) {
+            return $found[0]->getID();
+        }
+
+        $args = [
+            'author' => $user->get('id'),
+            'name' => $user->get('username'),
+            'type' => 'forge-members'
+        ];
+
+        $meta = [
+            [
+                'keyy' => 'user',
+                'value' => $user->get('id'),
+                'lang' => 0
+            ]
+        ];
+
+        return CollectionItem::create($args, $meta);
     }
 
 }

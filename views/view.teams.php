@@ -9,6 +9,7 @@ use Forge\Core\App\Auth;
 use Forge\Core\Classes\CollectionItem;
 use Forge\Core\Classes\Fields;
 use Forge\Core\Classes\Media;
+use Forge\Core\Classes\Relations\Enums\Prepares;
 use Forge\Core\Classes\User;
 use Forge\Core\Classes\Utils as CoreUtils;
 use Forge\Core\Traits\ApiAdapter;
@@ -63,6 +64,8 @@ class TeamsView extends View {
             $collection = App::instance()->cm->getCollection('forge-organizations');
             $user = App::instance()->user;
             $collection->joinRequest($parts[2], $user);
+            App::instance()->addMessage('Join Request successfully sent.', 'ftt');
+            App::instance()->redirect($this->buildURL());
         }
 
         if(count($parts) > 1 && $parts[1] == 'search') {
@@ -87,10 +90,18 @@ class TeamsView extends View {
     }
 
     private function getOrganizations() {
-        $items = CollectionQuery::items([
-            'name' => 'forge-organizations',
+        $items = [];
+        $memberForUser = CollectionQuery::items([
+            'name' => 'forge-members',
             'author' => App::instance()->user->get('id')
         ]);
+
+        $relation = App::instance()->rd->getRelation('ftt_organization_members');
+        foreach($relation->getOfRight($memberForUser[0]->id, Prepares::AS_IDS_LEFT) as $memberTeam) {
+            $i = new CollectionItem($memberTeam);
+            array_push($items, $i);
+        }
+
         $preparedItems = [];
         foreach($items as $item) {
             $img = new Media($item->getMeta('logo'));
@@ -112,7 +123,7 @@ class TeamsView extends View {
         if(strlen($data['team_name']) > 0) {
             $metas['title'] = ['value' => $data['team_name']];
         } else {
-            App::instance()->addMessage(i('Team could not be created without a name', 'ftt'));
+            App::instance()->addMessage(i('Organization could not be created without a name', 'ftt'));
             $hasError = true;
         }
         if(strlen($data['team_description']) > 0) {
@@ -130,11 +141,17 @@ class TeamsView extends View {
         }
 
         if(! $hasError) {
-            CollectionItem::create([
+            $organization_id = CollectionItem::create([
                 'name' => CoreUtils::methodName($data['team_name']),
                 'type' => 'forge-organizations',
                 'author' => App::instance()->user->get('id')
             ], $metas);
+
+            $collection = App::instance()->cm->getCollection('forge-organizations');
+            $memberId = MembersCollection::createIfNotExists(App::instance()->user);
+            $collection->joinRequest($organization_id, App::instance()->user);
+            $collection->acceptJoinRequest($organization_id, $memberId);
+
             return '<h2>'.i('Your team has been created.', 'ftt').'</h2>';
         }
     }

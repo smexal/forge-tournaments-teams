@@ -70,7 +70,23 @@ class ForgeTournamentsteams extends Module {
             ]);
         });
 
+        \registerModifier('Forge/Core/RelationDirectory/collectRelations', function($existing) {
+            return array_merge($existing, [
+                'ftt_participant_teams' => new CollectionRelation(
+                    'ftt_participant_teams', 
+                    'forge-tournaments-participant', 
+                    'forge-teams', 
+                    Directions::DIRECTED
+                )
+            ]);
+        });
+
         App::instance()->tm->theme->addScript($this->url() . "assets/scripts/ftt.js", true);
+
+        App::instance()->tm->theme->addStyle(CORE_WWW_ROOT . "ressources/css/externals/chosen.css");
+
+        App::instance()->tm->theme->addScript(CORE_WWW_ROOT."ressources/scripts/externals/chosen.jquery.min.js", true);
+        App::instance()->tm->theme->addScript(CORE_WWW_ROOT."ressources/scripts/chosen.js", true);
 
         $this->install();
         ModifyHandler::instance()->add('modify_manage_navigation', [$this, 'modifyManageNavigation']);

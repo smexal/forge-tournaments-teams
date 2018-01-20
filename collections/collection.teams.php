@@ -3,7 +3,10 @@
 namespace Forge\Modules\TournamentsTeams;
 
 use Forge\Core\Abstracts\DataCollection;
+use Forge\Core\App\App;
 use Forge\Core\App\Auth;
+use Forge\Core\Classes\CollectionItem;
+use Forge\Core\Classes\Relations\Enums\Prepares;
 use Forge\Core\Classes\Utils;
 
 class TeamsCollection extends DataCollection {
@@ -61,6 +64,26 @@ class TeamsCollection extends DataCollection {
                 'hint' => i('Assigned Members for this organization', 'ftt')
             ]
         ]);
+    }
+
+    public static function getMembers($item) {
+        $relation = App::instance()->rd->getRelation('ftt_teams_members');
+        if(is_object($item)) {
+            return array_unique($relation->getOfLeft($item->id, Prepares::AS_IDS_RIGHT));
+        } else {
+            return array_unique($relation->getOfLeft($item, Prepares::AS_IDS_RIGHT));
+        }
+    }
+
+    public static function getName($item) {
+        if(! is_object($item)) {
+            $item = new CollectionItem($item);
+        }
+        return $item->getName();
+    }
+
+    public static function getMemberCount($item) {
+        return count(self::getMembers($item));
     }
 
     /**

@@ -10,7 +10,13 @@
             {if="$actions"}
             <div class="row actions">
                 <div class="col-lg-12">
-                    <button class="btn to-overlay" href="{$create_team_url}">{$create_team_label}</button>
+                    <button 
+                        class="btn to-overlay" 
+                        href="{$create_team_url}"
+                        refresh-on-close="{$create_close_url}" refresh-target="#organization-detail"
+                    >
+                        {$create_team_label}
+                    </button>
                 </div>
             </div>
             {/if}
@@ -36,7 +42,7 @@
             </div>
         </div>
         <div class="col-lg-4">
-            <div class="image">
+            <div class="main-image image">
                 {if="$team_image"}<img src="{$team_image}" />{/if}
             </div>
         </div>

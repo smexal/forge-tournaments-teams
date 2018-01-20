@@ -6,11 +6,13 @@ use Forge\Core\Abstracts\DataCollection;
 use Forge\Core\App\App;
 use Forge\Core\App\Auth;
 use Forge\Core\App\ModifyHandler;
+use Forge\Core\Classes\CollectionItem;
 use Forge\Core\Classes\Fields;
 use Forge\Core\Classes\Media;
 use Forge\Core\Classes\Relations\Enums\Prepares;
 use Forge\Core\Classes\User;
 use Forge\Core\Classes\Utils;
+use Forge\Modules\TournamentsTeams\TeamsCollection;
 
 class OrganizationsCollection extends DataCollection {
     public $permission = "manage.collection.organizations";
@@ -36,22 +38,37 @@ class OrganizationsCollection extends DataCollection {
     }
 
     public function render($item) {
-        $img = new Media($item->getMeta('logo'));
-        $ownerUser = new User($item->getAuthor());
-
         $url_parts = Utils::getUriComponents();
         if(count($url_parts) > 3 && $url_parts[3] == 'create') {
             if($this->isOwner($item)) {
-                return $this->createTeamContent();
+                if(array_key_exists('team_name', $_POST)) {
+                    return $this->createTeam($item, $_POST);
+                }
+                return $this->createTeamContent($item);
+
             } else {
                 App::instance()->redirect('denied');
             }
         }
 
+        if(count($url_parts) > 3 && $url_parts[3] == 'accept_join_request' && is_numeric($url_parts[4])) {
+            $this->acceptJoinRequest($item, $url_parts[4]);
+            App::instance()->addMessage(i('Request accepted', 'ftt'));
+            App::instance()->redirect($item->url());
+        }
+
+
+
+
+        // nothing special, show default
+
         $actions = false;
         if($this->isOwner($item)) {
             $actions = true;
         }
+
+        $img = new Media($item->getMeta('logo'));
+        $ownerUser = new User($item->getAuthor());
 
         return App::instance()->render(MOD_ROOT.'forge-tournaments-teams/templates/', 'organization-detail', [
             'title' => $item->getMeta('title'),
@@ -68,8 +85,38 @@ class OrganizationsCollection extends DataCollection {
             'tabs' => $this->getTeamTabs($item),
             'actions' => $actions,
             'create_team_label' => i('Create team'),
-            'create_team_url' => Utils::getCurrentUrl().'/create'
+            'create_team_url' => Utils::getCurrentUrl().'/create',
+            'create_close_url' => Utils::getCurrentUrl()
         ]);
+    }
+
+    private function createTeam($item, $data) {
+        $metas = [];
+        $hasError = false;
+
+        if(strlen($data['team_name']) > 0) {
+            $metas['title'] = ['value' => $data['team_name']];
+        } else {
+            App::instance()->addMessage(i('Organization could not be created without a name', 'ftt'));
+            $hasError = true;
+        }
+        $metas['status'] = ['value' => 'published'];
+
+        if(! $hasError) {
+            $team_id = CollectionItem::create([
+                'name' => Utils::methodName($data['team_name']),
+                'type' => 'forge-teams',
+                'author' => App::instance()->user->get('id')
+            ], $metas);
+
+            $relation = App::instance()->rd->getRelation('ftt_teams_members');
+            $relation->setRightItems($team_id, $data['team_members']);
+
+            $relation = App::instance()->rd->getRelation('ftt_organization_teams');
+            $relation->add($item->getID(), $team_id);
+
+            return '<h3>'.i('Your team has been created', 'ftt').'</h3>';
+        }
     }
 
     private function getTeamTabs($item) {
@@ -81,61 +128,204 @@ class OrganizationsCollection extends DataCollection {
             ],
         ];
 
+        $requests = $this->getJoinRequests($item);
+
+        $tabs_content = [
+            [
+                'id' => 'all_members',
+                'active' => true,
+                'content' => $this->tabMembers($item)
+            ],
+            [
+                'id' => 'requests',
+                'content' => $this->tabJoinRequests($requests)
+            ]
+        ];
+
+        foreach(self::getTeams($item) as $team) {
+            $cTeam = new CollectionItem($team);
+            $tabs = array_merge($tabs, [
+                    [
+                        'key' => 'team-'.$team,
+                        'name' => $cTeam->getName()
+                    ]
+            ]);
+
+            $tabs_content = array_merge($tabs_content, [
+                [
+                    'id' => 'team-'.$team,
+                    'content' => $this->getTeamMembers($cTeam)
+                ]
+            ]);
+        }
+
+        if($this->isOwner($item)) {
+            $pending = '';
+            if(count($requests) > 0) {
+                $pending = ' <small class="not-bubble">'.count($requests).'</small>';
+            }
+            $tabs = array_merge($tabs, [
+                [
+                    'key' => 'requests',
+                    'name' => i('Pending Requests').$pending,
+                    'disabled' => count($requests) == 0 ? true : false
+                ]
+            ]);
+        }
+
+
         return App::instance()->render(CORE_TEMPLATE_DIR."assets/", "tabs", [
             'tabs' => $tabs,
-            'tabs_content' => [
+            'tabs_content' => $tabs_content
+        ]);
+    }
+
+    private function getTeamMembers($team) {
+        $member_list = TeamsCollection::getMembers($team);
+        $members = '';
+        foreach($member_list as $member) {
+            $member = new CollectionItem($member);
+            $user = new User($member->getMeta('user'));
+            $args = [
+                'username' => $user->get('username'),
+                'avatar' => $user->getAvatar() !== null ? $user->getAvatar() : false
+            ];
+            $members.= App::instance()->render(MOD_ROOT.'forge-tournaments-teams/templates/parts', 'memberbox', $args);
+        }
+
+        return App::instance()->render(MOD_ROOT.'forge-tournaments-teams/templates/parts', 'members_tab', [
+            'members' => $members
+        ]);
+    }
+
+    private function tabMembers($item) {
+        $member_list = $this->getMembers($item);
+        $members = '';
+        foreach($member_list as $member) {
+            $member = new CollectionItem($member);
+            $user = new User($member->getMeta('user'));
+            $args = [
+                'username' => $user->get('username'),
+                'avatar' => $user->getAvatar() !== null ? $user->getAvatar() : false
+            ];
+            $members.= App::instance()->render(MOD_ROOT.'forge-tournaments-teams/templates/parts', 'memberbox', $args);
+        }
+        return App::instance()->render(MOD_ROOT.'forge-tournaments-teams/templates/parts', 'members_tab', [
+            'members' => $members
+        ]);
+    }
+
+    private function tabJoinRequests($requests) {
+        $reqs = '';
+        foreach($requests as $request) {
+            $member = new CollectionItem($request);
+            $user = new User($member->getMeta('user'));
+            $url = Utils::getUrl(array_merge(
+                Utils::getUriComponents(),
                 [
-                    'id' => 'all_members',
-                    'active' => true,
-                    'content' => 'yes'
+                    'accept_join_request',
+                    $request
                 ]
-            ]
+            ));
+            $args = [
+                'username' => $user->get('username'),
+                'avatar' => $user->getAvatar() !== null ? $user->getAvatar() : false,
+                'additional' => '<a href="'.$url.'">'.i('Accept Join request', 'ftt').'</a>'
+            ];
+            $reqs.= App::instance()->render(MOD_ROOT.'forge-tournaments-teams/templates/parts', 'memberbox', $args);
+        }
+
+        return App::instance()->render(MOD_ROOT.'forge-tournaments-teams/templates/parts', 'join_request_tab', [
+            'requests' => $reqs
         ]);
     }
 
     public function joinRequest($item, $user) {
-        $item = $this->getItem($item);
+        if(! is_object($item)) {
+            $item = $this->getItem($item);
+        }
         $memberId = MembersCollection::createIfNotExists($user);
 
         if(! in_array($memberId, $this->getJoinRequests($item))
         && ! in_array($memberId, $this->getMembers($item))) {
             $rel = App::instance()->rd->getRelation('ftt_organization_join_requests');
-            $rel->setRightItems($item->id, [$memberId]);
+            return $rel->add($item->id, $memberId);
         }
+    }
+
+    public static function getTeams($item) {
+        $relation = App::instance()->rd->getRelation('ftt_organization_teams');
+        return $relation->getOfLeft($item->id, Prepares::AS_IDS_RIGHT);
     }
 
     private function getJoinRequests($item) {
         $relation = App::instance()->rd->getRelation('ftt_organization_join_requests');
-        return $relation->getOfLeft($item->id, Prepares::AS_IDS_RIGHT);        
+        return $relation->getOfLeft($item->id, Prepares::AS_IDS_RIGHT);
+    }
+
+    public function acceptJoinRequest($item, $request) {
+        if(! is_object($item) ) {
+            $item = $this->getItem($item);
+        }
+        $joinRelation = App::instance()->rd->getRelation('ftt_organization_join_requests');
+        $joinRelation->removeByRelationItems($item->id, $request);
+
+        // is already member.. break;
+        if(in_array($request, $this->getMembers($item))) {
+            return;
+        }
+        $memberRelation = App::instance()->rd->getRelation('ftt_organization_members');
+        $memberRelation->add($item->id, $request);
     }
 
     private function getMembers($item) {
         $relation = App::instance()->rd->getRelation('ftt_organization_members');
-        return $relation->getOfLeft($item->id, Prepares::AS_IDS_RIGHT);        
+        return array_unique($relation->getOfLeft($item->id, Prepares::AS_IDS_RIGHT));
     }
 
-    private function createTeamContent() {
+    public static function getName($item) {
+        if(! is_object($item)) {
+            $item = new CollectionItem($item);
+        }
+        return $item->getName();
+    }
+
+    private function createTeamContent($item) {
         $heading = '<h3>'.i('Create a new Team', 'ftt').'</h3>';
         $content = [];
         $content[] = Fields::text([
             'label' => i('Team Name', 'ftt'),
             'key' => 'team_name',
         ]);
-        /** tbd 
-        $content[] = Fields::repeater([
+        $content[] = Fields::multiselect([
             'label' => i('Define members', 'ftt'),
-            'subfields'
+            'key' => 'team_members',
+            'values' => $this->getMultiSelectMembers($item)
         ]);
-        */
+        $content[] = Fields::button(i('Create team', 'ftt'));
 
         return '<div class="wrapper">'.$heading.App::instance()->render(CORE_TEMPLATE_DIR.'assets/', 'form', [
             'action' => Utils::getCurrentUrl(),
             'method' => 'post',
             'ajax' => true,
-            'ajax_target' => '#slidein-overlay .ajax-content',
+            'ajax_target' => '#slidein-overlay .content',
             'horizontal' => false,
             'content' => $content
         ]).'</div>';
+    }
+
+    private function getMultiSelectMembers($item) {
+        $members = $this->getMembers($item);
+        $selectValues = [];
+        foreach($members as $member) {
+            $member = new CollectionItem($member);
+            $selectValues[] = [
+                'value' => $member->getID(),
+                'text' => $member->getName(),
+                'active' => false
+            ];
+        }
+        return $selectValues;
     }
 
     private function custom_fields() {
@@ -239,43 +429,6 @@ class OrganizationsCollection extends DataCollection {
                 return $fields;
             }
         );
-    }
-
-    /**
-     * Register the subnavigations
-     * @return array
-     */
-    public function getSubnavigation() {
-        return [
-            [
-                'url' => 'teams',
-                'title' => i('Teams', 'ftt')
-            ]
-        ];
-    }
-
-    public function subviewTeams($itemId) {
-        if (!Auth::allowed("manage.collection.organizations")) {
-            return;
-        }
-
-        $teams = new Teams();
-        $teams->setOrganization($itemId);
-        if (Auth::allowed('manage.collection.organizations', true)) {
-            $teams->isAdmin = true;
-        }
-
-        if (array_key_exists('deleteTeam', $_GET) && is_numeric($_GET['deleteTeam'])) {
-            $teams->delete($_GET['deleteTeam']);
-        }
-        return $teams->renderTableBackend();
-    }
-
-    public function subviewTeamsActions($itemId) {
-        return $this->app->render(CORE_TEMPLATE_DIR . "assets/", "overlay-button", array(
-            'url' => Utils::getUrl(array('manage', 'collections', 'forge-organizations', 'assign', $itemId, 'forge-teams', 'add')),
-            'label' => 'add team'
-        ));
     }
 }
 

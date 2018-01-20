@@ -1,0 +1,13 @@
+<div class="compact-infobox memberbox reveal">
+    <div class="avatar">
+        {if="$avatar"}
+            <div class="image" style="background-image:url({$avatar});"></div>
+        {else}
+            <div class="avatar-placeholder"><i class="icon ion-ios-person-outline"></i></div>
+        {/if}
+    </div>
+    <div class="data">
+        <h4>{$username}</h4>
+        {if="isset($additional)"}<p class="discreet">{$additional}</p>{/if}
+    </div>
+</div>

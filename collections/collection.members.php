@@ -46,6 +46,24 @@ class MembersCollection extends DataCollection {
         ]);
     }
 
+    public static function getByUser($user) {
+        if(! is_object($user)) {
+            $user = new User($user);
+        }
+        return self::createIfNotExists($user);
+    }
+
+    public static function getOwnedOrganizations($member) {
+        if(!is_object($member)) {
+            $member = new CollectionItem($member);
+        }
+        $found = CollectionQuery::items([
+            'author' => $member->getAuthor(),
+            'name' => 'forge-organizations'
+        ]);
+        return $found;
+    }
+
     public static function createIfNotExists($user) {
 
         $found = CollectionQuery::items([

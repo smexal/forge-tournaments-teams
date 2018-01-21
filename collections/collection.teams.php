@@ -66,6 +66,15 @@ class TeamsCollection extends DataCollection {
         ]);
     }
 
+    public static function getOrganization($team) {
+        if(is_object($team)) {
+            $team = $team->id;
+        }
+        $relation = App::instance()->rd->getRelation('ftt_organization_teams');
+        $orgas = $relation->getOfRight($team, Prepares::AS_IDS_LEFT);
+        return $orgas[0];
+    }
+
     public static function getMembers($item) {
         $relation = App::instance()->rd->getRelation('ftt_teams_members');
         if(is_object($item)) {

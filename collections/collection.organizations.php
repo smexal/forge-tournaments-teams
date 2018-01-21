@@ -258,6 +258,19 @@ class OrganizationsCollection extends DataCollection {
         return $relation->getOfLeft($item->id, Prepares::AS_IDS_RIGHT);
     }
 
+    public static function getShortName($orga) {
+        if(! is_object($orga)) {
+            $orga = new CollectionItem($orga);
+        }
+        $sname = substr($orga->getMeta('shorttag'), 0, 5);
+        if(strlen($sname) == 0) {
+            $vowels = array("a", "e", "i", "o", "u", "A", "E", "I", "O", "U", " ");
+            $pseudoShort = str_replace($vowels, "", $orga->getName());
+            return substr($pseudoShort, 0, 5);
+        }
+        return $sname;
+    }
+
     private function getJoinRequests($item) {
         $relation = App::instance()->rd->getRelation('ftt_organization_join_requests');
         return $relation->getOfLeft($item->id, Prepares::AS_IDS_RIGHT);

@@ -22,29 +22,30 @@ class TeamsView extends View {
     public $name = 'teams';
     public $allowNavigation = true;
 
-    public function searchTeam($query, $data) {
-        $items = CollectionQuery::items([
-            'name' => 'forge-organizations',
-            'limit' => 10,
-            'query' => '%'.$data['query'].'%'
-        ]);
+    // UNUSED
+    // public function searchTeam($query, $data) {
+    //     $items = CollectionQuery::items([
+    //         'name' => 'forge-organizations',
+    //         'limit' => 10,
+    //         'query' => '%'.$data['query'].'%'
+    //     ]);
 
-        $content = '<ul>';
-        foreach($items as $item) {
-            $u = new User($item->getAuthor());
-            $content.='<li>';
-            $content.='<p>'.$item->getName().'</p>';
-            $content.='<small>'.$u->get('username').'</small>';
-            $joinURL = $this->buildURL(['join_request', $item->getID()]);
-            $content.='<a href="'.$joinURL.'" class="btn">'.i('Join Request', 'ftt').'</a>';
-            $content.='</li>';
-        }
-        $content.='</ul>';
+    //     $content = '<ul>';
+    //     foreach($items as $item) {
+    //         $u = new User($item->getAuthor());
+    //         $content.='<li>';
+    //         $content.='<p>'.$item->getName().'</p>';
+    //         $content.='<small>'.$u->get('username').'</small>';
+    //         $joinURL = $this->buildURL(['join_request', $item->getID()]);
+    //         $content.='<a href="'.$joinURL.'" class="btn">'.i('Join Request', 'ftt').'</a>';
+    //         $content.='</li>';
+    //     }
+    //     $content.='</ul>';
 
-        return json_encode([
-            'content' => $content
-        ]);
-    }
+    //     return json_encode([
+    //         'content' => $content
+    //     ]);
+    // }
 
     public function content() {
         if(! Auth::any()) {
@@ -90,19 +91,29 @@ class TeamsView extends View {
     }
 
     private function getOrganizations() {
+        $preparedItems = [];
         $items = [];
-        $memberForUser = CollectionQuery::items([
+        $membersForUser = CollectionQuery::items([
             'name' => 'forge-members',
             'author' => App::instance()->user->get('id')
         ]);
 
+        $memberCount = count($membersForUser);
+        if ($memberCount == 0) {
+            $memberForUser = MembersCollection::createIfNotExists(App::instance()->user);
+        } else if ($memberCount > 1) {
+            $memberForUser = $membersForUser[0];
+        } else {
+            return $preparedItems;
+        }
+
         $relation = App::instance()->rd->getRelation('ftt_organization_members');
-        foreach($relation->getOfRight($memberForUser[0]->id, Prepares::AS_IDS_LEFT) as $memberTeam) {
+        foreach($relation->getOfRight($memberForUser->id, Prepares::AS_IDS_LEFT) as $memberTeam) {
             $i = new CollectionItem($memberTeam);
             array_push($items, $i);
         }
 
-        $preparedItems = [];
+
         foreach($items as $item) {
             $img = new Media($item->getMeta('logo'));
             $preparedItems[] = [
@@ -127,10 +138,10 @@ class TeamsView extends View {
             $hasError = true;
         }
         if(strlen($data['team_description']) > 0) {
-            $metas['description'] = ['value' => $data['team_description']];   
+            $metas['description'] = ['value' => $data['team_description']];
         }
         if(strlen($data['team_website']) > 0) {
-            $metas['website'] = ['value' => $data['team_website']];   
+            $metas['website'] = ['value' => $data['team_website']];
         }
         $metas['status'] = ['value' => 'published'];
 

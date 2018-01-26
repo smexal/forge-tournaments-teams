@@ -80,7 +80,7 @@ class TeamsView extends View {
 
         return $navigation.App::instance()->render(MOD_ROOT.'forge-tournaments-teams/templates/', 'teams', [
             'title' => i('Your Organizations', 'ftt'),
-            'create_team_label' => i('Create organization', 'ftt'),
+            'create_team_label' => i('Create', 'ftt'),
             'create_team_link' => CoreUtils::url(['teams', 'create']),
             'search_team_label' => i('Search', 'ftt'),
             'search_team_link' => CoreUtils::url(['teams', 'search']),
@@ -101,7 +101,7 @@ class TeamsView extends View {
         $memberCount = count($membersForUser);
         if ($memberCount == 0) {
             $memberForUser = MembersCollection::createIfNotExists(App::instance()->user);
-        } else if ($memberCount > 1) {
+        } else if ($memberCount >= 1) {
             $memberForUser = $membersForUser[0];
         } else {
             return $preparedItems;
@@ -213,7 +213,7 @@ class TeamsView extends View {
             'label' => i('Website', 'ftt'),
             'key' => 'team_website',
         ]);
-        $content[] = Fields::button(i('Create organzation', 'ftt'));
+        $content[] = Fields::button(i('Create', 'ftt'));
         return '<div class="wrapper">'.$heading.App::instance()->render(CORE_TEMPLATE_DIR.'assets/', 'form', [
             'action' => CoreUtils::getCurrentUrl(),
             'method' => 'post',

@@ -79,6 +79,7 @@
             display: flex;
             width: 100%;
             justify-content: space-between;
+            flex-wrap: wrap;
 
             padding-bottom: 10px;
             margin-bottom: 10px;
@@ -110,6 +111,18 @@
     padding-top: 30px;
     > div {
         display: flex;
+        flex-wrap: wrap;
+        @media only screen and (max-width: 420px) {
+            .compact-infobox {
+                width: 100%;
+            }
+        }
+    }
+
+    @media only screen and (max-width: 420px) {
+        .avatar {
+            margin-right: 10px;
+        }
     }
 
     .avatar .image {

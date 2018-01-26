@@ -25,13 +25,13 @@
             <div class="col-lg-2"></div>
             <div class="col-lg-4 add-team">
                 <div class="row">
-                    <div class="col-lg-6">
+                    <div class="col-lg-6 col-xs-6">
                         <a href="<?php echo $create_team_link;?>" class="to-overlay" refresh-on-close="<?php echo $close_url;?>" refresh-target="#teams">
                             <i class="icon ion-ios-plus-empty"></i>
                             <span class="cta-light"><?php echo $create_team_label;?></span>
                         </a>
                     </div>
-                    <div class="col-lg-6">
+                    <div class="col-lg-6 col-xs-6">
                         <a href="<?php echo $search_team_link;?>" class="to-overlay">
                             <i class="icon ion-ios-search"></i>
                             <span class="cta-light"><?php echo $search_team_label;?></span>

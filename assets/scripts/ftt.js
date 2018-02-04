@@ -2,13 +2,17 @@ var forgeTournamentTeams = {
     init : function() {
 
         timeout = false;
+        $("#team-search-form").find("input[name='team_search']").on('keyup keypress', function(e) {
+            var keyCode = e.keyCode || e.which;
+            if (keyCode === 13) { 
+                e.preventDefault();
+                return false;
+            }
+        });
+
         $("#team-search-form").find("input[name='team_search']").on('input', function() {
             clearTimeout(timeout);
             var self = $(this);
-            if(self.val().length == 0) {
-                self.closest('#team-search-form').find("#team-results").html('');
-                return;
-            }
             timeout = setTimeout(function() {
                 $.ajax({
                     method: "POST",

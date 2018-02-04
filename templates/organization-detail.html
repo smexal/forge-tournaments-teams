@@ -17,6 +17,13 @@
                     >
                         {$create_team_label}
                     </button>
+                    <button 
+                        class="btn to-overlay" 
+                        href="{$edit_team_url}"
+                        refresh-on-close="{$create_close_url}" refresh-target="#organization-detail"
+                    >
+                        {$edit_team_label}
+                    </button>
                 </div>
             </div>
             {/if}

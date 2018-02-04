@@ -16,6 +16,7 @@ use Forge\Modules\TournamentsTeams\TeamsCollection;
 
 class OrganizationsCollection extends DataCollection {
     public $permission = "manage.collection.organizations";
+    private $item = null;
 
     protected function setup() {
         $this->preferences['name'] = 'forge-organizations';
@@ -38,6 +39,7 @@ class OrganizationsCollection extends DataCollection {
     }
 
     public function render($item) {
+        $this->item = $item;
         $url_parts = Utils::getUriComponents();
         if(count($url_parts) > 3 && $url_parts[3] == 'create') {
             if($this->isOwner($item)) {
@@ -45,6 +47,17 @@ class OrganizationsCollection extends DataCollection {
                     return $this->createTeam($item, $_POST);
                 }
                 return $this->createTeamContent($item);
+
+            } else {
+                App::instance()->redirect('denied');
+            }
+        }
+        if(count($url_parts) > 3 && $url_parts[3] == 'update') {
+            if($this->isOwner($item)) {
+                if(array_key_exists('team_name', $_POST)) {
+                    //return $this->createTeam($item, $_POST);
+                }
+                return $this->editOrganizationContent($item);
 
             } else {
                 App::instance()->redirect('denied');
@@ -86,6 +99,8 @@ class OrganizationsCollection extends DataCollection {
             'actions' => $actions,
             'create_team_label' => i('Create team'),
             'create_team_url' => Utils::getCurrentUrl().'/create',
+            'edit_team_label' => i('Edit organization', 'ftt'),
+            'edit_team_url' => Utils::getCurrentUrl().'/update',
             'create_close_url' => Utils::getCurrentUrl()
         ]);
     }
@@ -322,6 +337,40 @@ class OrganizationsCollection extends DataCollection {
             'method' => 'post',
             'ajax' => true,
             'ajax_target' => '#slidein-overlay .content',
+            'horizontal' => false,
+            'content' => $content
+        ]).'</div>';
+    }
+
+    private function editOrganizationContent() {
+        $heading = '<h2>'.i('Update organization', 'ftt').'</h2>';
+        $content = [];
+        $content[] = Fields::text([
+            'label' => i('Organization Name', 'ftt'),
+            'key' => 'team_name',
+        ], $this->item->getMeta('title'));
+        $content[] = Fields::text([
+            'label' => i('Short Name', 'ftt'),
+            'key' => 'team_short',
+        ], $this->item->getMeta('shorttag'));
+        $content[] = Fields::text([
+            'label' => i('Description', 'ftt'),
+            'key' => 'team_description',
+        ]);
+        $content[] = Fields::fileStandard([
+            'label' => i('Image / Logo', 'ftt'),
+            'key' => 'team_image',
+        ], $this->item->getMeta('logo'));
+        $content[] = Fields::text([
+            'label' => i('Website', 'ftt'),
+            'key' => 'team_website',
+        ], $this->item->getMeta('website'));
+        $content[] = Fields::button(i('Create', 'ftt'));
+        return '<div class="wrapper">'.$heading.App::instance()->render(CORE_TEMPLATE_DIR.'assets/', 'form', [
+            'action' => Utils::getCurrentUrl(),
+            'method' => 'post',
+            'ajax' => true,
+            'ajax_target' => '#slidein-overlay .ajax-content',
             'horizontal' => false,
             'content' => $content
         ]).'</div>';

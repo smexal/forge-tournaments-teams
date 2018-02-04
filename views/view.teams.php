@@ -22,30 +22,29 @@ class TeamsView extends View {
     public $name = 'teams';
     public $allowNavigation = true;
 
-    // UNUSED
-    // public function searchTeam($query, $data) {
-    //     $items = CollectionQuery::items([
-    //         'name' => 'forge-organizations',
-    //         'limit' => 10,
-    //         'query' => '%'.$data['query'].'%'
-    //     ]);
+    public function searchTeam($query, $data) {
+        $items = CollectionQuery::items([
+            'name' => 'forge-organizations',
+             'limit' => 10,
+             'query' => '%'.$data['query'].'%'
+        ]);
 
-    //     $content = '<ul>';
-    //     foreach($items as $item) {
-    //         $u = new User($item->getAuthor());
-    //         $content.='<li>';
-    //         $content.='<p>'.$item->getName().'</p>';
-    //         $content.='<small>'.$u->get('username').'</small>';
-    //         $joinURL = $this->buildURL(['join_request', $item->getID()]);
-    //         $content.='<a href="'.$joinURL.'" class="btn">'.i('Join Request', 'ftt').'</a>';
-    //         $content.='</li>';
-    //     }
-    //     $content.='</ul>';
+        $content = '<ul>';
+        foreach($items as $item) {
+             $u = new User($item->getAuthor());
+             $content.='<li>';
+             $content.='<p>'.$item->getName().'</p>';
+             $content.='<small>'.$u->get('username').'</small>';
+             $joinURL = $this->buildURL(['join_request', $item->getID()]);
+             $content.='<a href="'.$joinURL.'" class="btn">'.i('Join Request', 'ftt').'</a>';
+             $content.='</li>';
+        }
+        $content.='</ul>';
 
-    //     return json_encode([
-    //         'content' => $content
-    //     ]);
-    // }
+        return json_encode([
+            'content' => $content
+        ]);
+     }
 
     public function content() {
         if(! Auth::any()) {
@@ -108,7 +107,8 @@ class TeamsView extends View {
         }
 
         $relation = App::instance()->rd->getRelation('ftt_organization_members');
-        foreach($relation->getOfRight($memberForUser->id, Prepares::AS_IDS_LEFT) as $memberTeam) {
+        $members = $relation->getOfRight($memberForUser->id, Prepares::AS_IDS_LEFT);
+        foreach($members as $memberTeam) {
             $i = new CollectionItem($memberTeam);
             array_push($items, $i);
         }
@@ -116,6 +116,9 @@ class TeamsView extends View {
 
         foreach($items as $item) {
             $img = new Media($item->getMeta('logo'));
+            if(is_null($item->url())) {
+                continue;
+            }
             $preparedItems[] = [
                 'title' => $item->getMeta('title'),
                 'image' => $img->getSizedImage(280, 170),
@@ -179,7 +182,7 @@ class TeamsView extends View {
             'label' => i('Search Term', 'ftt'),
             'key' => 'team_search',
         ]);
-
+        $orgas = json_decode($this->searchTeam('', ['query' => '']));
         return '<div id="team-search-form" class="wrapper">'.$heading.App::instance()->render(CORE_TEMPLATE_DIR.'assets/', 'form', [
             'action' => CoreUtils::getUrl(['api', $this->apiMainListener, 'search-team']),
             'method' => 'post',
@@ -187,7 +190,7 @@ class TeamsView extends View {
             'ajax_target' => '#slidein-overlay .ajax-content',
             'horizontal' => false,
             'content' => $content
-        ]).'<div id="team-results"></div></div>';
+        ]).'<div id="team-results">'.$orgas->content.'</div></div>';
     }
 
     private function getCreateView() {

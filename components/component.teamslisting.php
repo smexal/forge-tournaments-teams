@@ -8,7 +8,8 @@ use Forge\Core\Classes\Media;
 use Forge\Core\Components\ListingComponent;
 
 class TeamslistingComponent extends ListingComponent {
-    protected $collection = 'forge-teams';
+    protected $collection = 'forge-organizations';
+    protected $cssClasses = ['wrapper', 'reveal'];
 
     public function prefs() {
         return array(
@@ -22,17 +23,13 @@ class TeamslistingComponent extends ListingComponent {
     }
 
     public function renderItem($item) {
-        $image = $item->getMeta('image');
-        $image = new Media($image);
-        return App::instance()->render(MOD_ROOT . 'forge-teams/templates/', 'listing-item', array(
-            'title' => $item->getMeta('title'),
-            'description' => $item->getMeta('description'),
-            'email' => $item->getMeta('email'),
-            'image' => [
-                'src' => $image->url . $image->name,
-                'alt' => $item->getMeta('title')
-            ]
-        ));
+        $img = new Media($item->getMeta('logo'));
+        $args = [
+            'username' => $item->getName(),
+            'avatar' => $img ? $img->getUrl() : false,
+            'link' => $item->url()
+        ];
+        return App::instance()->render(MOD_ROOT . 'forge-tournaments-teams/templates/', 'listing-organisation',$args);
     }
 
 }

@@ -107,10 +107,12 @@ class TeamsView extends View {
         }
 
         $relation = App::instance()->rd->getRelation('ftt_organization_members');
-        $members = $relation->getOfRight($memberForUser->id, Prepares::AS_IDS_LEFT);
-        foreach($members as $memberTeam) {
-            $i = new CollectionItem($memberTeam);
-            array_push($items, $i);
+        if(is_object($memberForUser)) {
+            $members = $relation->getOfRight($memberForUser->id, Prepares::AS_IDS_LEFT);
+            foreach($members as $memberTeam) {
+                $i = new CollectionItem($memberTeam);
+                array_push($items, $i);
+            }
         }
 
 

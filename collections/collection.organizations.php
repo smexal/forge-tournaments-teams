@@ -54,10 +54,11 @@ class OrganizationsCollection extends DataCollection {
         }
         if(count($url_parts) > 3 && $url_parts[3] == 'update') {
             if($this->isOwner($item)) {
+                $message = '';
                 if(array_key_exists('team_name', $_POST)) {
-                    //return $this->createTeam($item, $_POST);
+                    $message = $this->updateOrganisation($item, $_POST);
                 }
-                return $this->editOrganizationContent($item);
+                return $message.$this->editOrganizationContent($item);
 
             } else {
                 App::instance()->redirect('denied');
@@ -112,7 +113,7 @@ class OrganizationsCollection extends DataCollection {
         if(strlen($data['team_name']) > 0) {
             $metas['title'] = ['value' => $data['team_name']];
         } else {
-            App::instance()->addMessage(i('Organization could not be created without a name', 'ftt'));
+            App::instance()->addMessage(i('Team could not be created without a name', 'ftt'));
             $hasError = true;
         }
         $metas['status'] = ['value' => 'published'];
@@ -342,6 +343,36 @@ class OrganizationsCollection extends DataCollection {
         ]).'</div>';
     }
 
+    private function updateOrganisation($item, $data) {
+        if(array_key_exists('team_name', $data) && strlen($data['team_name']) > 3) {
+            $item->updateMeta('title', $data['team_name'], 0);
+        }
+        if(array_key_exists('team_short', $data) && strlen($data['team_short']) > 3) {
+            $item->updateMeta('shorttag', $data['team_short'], 0);
+        }
+        if(array_key_exists('team_description', $data) && strlen($data['team_description']) > 3) {
+            $item->updateMeta('description', $data['team_description'], 0);
+        }
+        if(array_key_exists('team_website', $data) && strlen($data['team_website']) > 3) {
+            $item->updateMeta('website', $data['team_website'], 0);
+        }
+
+        if(strlen($_FILES['team_image']['name']) > 0) {
+            if(is_numeric($item->getMeta('logo'))) {
+                // has current image
+                $image = new Media($item->getMeta('logo'));
+                $image->replace($_FILES['team_image']);
+            } else {
+                // no current image
+                $team_image = new Media();
+                $team_image->create($_FILES['team_image']);
+                $item->updateMeta('logo', $team_image->id, 0);
+            }
+        }
+
+        return '<div class="alert alert-success">'.i('Organization updated.', 'ftt').'</div>';
+    }
+
     private function editOrganizationContent() {
         $heading = '<h2>'.i('Update organization', 'ftt').'</h2>';
         $content = [];
@@ -356,16 +387,16 @@ class OrganizationsCollection extends DataCollection {
         $content[] = Fields::text([
             'label' => i('Description', 'ftt'),
             'key' => 'team_description',
-        ]);
+        ], $this->item->getMeta('description'));
         $content[] = Fields::fileStandard([
             'label' => i('Image / Logo', 'ftt'),
-            'key' => 'team_image',
-        ], $this->item->getMeta('logo'));
+            'key' => 'team_image'
+        ]);
         $content[] = Fields::text([
             'label' => i('Website', 'ftt'),
             'key' => 'team_website',
         ], $this->item->getMeta('website'));
-        $content[] = Fields::button(i('Create', 'ftt'));
+        $content[] = Fields::button(i('Save changes', 'ftt'));
         return '<div class="wrapper">'.$heading.App::instance()->render(CORE_TEMPLATE_DIR.'assets/', 'form', [
             'action' => Utils::getCurrentUrl(),
             'method' => 'post',

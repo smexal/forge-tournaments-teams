@@ -85,6 +85,19 @@
             margin-bottom: 10px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 
+            &:hover {
+                a.btn {
+                    opacity: 1;
+                    transform: scale(1);
+                }
+            }
+
+            a.btn {
+                transform: scale(0.8);
+                transition: 300ms;
+                opacity: 0;
+            }
+
             p, a, small {
                 line-height: 30px;
                 margin-bottom: 0;

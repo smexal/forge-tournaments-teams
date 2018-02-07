@@ -65,6 +65,19 @@ class OrganizationsCollection extends DataCollection {
             }
         }
 
+        if(count($url_parts) > 3 && ($url_parts[3] == 'edit-team' && is_numeric($url_parts[4]))) {
+            if($this->isOwner($item)) {
+                $message = '';
+                if(array_key_exists('team_name', $_POST)) {
+                    $message = $this->updateTeam($item, $url_parts[4], $_POST);
+                }
+                return $message.$this->editTeamContent($item, $url_parts[4]);
+
+            } else {
+                App::instance()->redirect('denied');
+            }
+        }
+
         if(count($url_parts) > 3 && $url_parts[3] == 'accept_join_request' && is_numeric($url_parts[4])) {
             $this->acceptJoinRequest($item, $url_parts[4]);
             App::instance()->addMessage(i('Request accepted', 'ftt'));
@@ -92,7 +105,7 @@ class OrganizationsCollection extends DataCollection {
             'shorttag_label' => i('Shorttag', 'ftt'),
             'shorttag_value' => $item->getMeta('shorttag'),
             'members_label' => i('Members', 'ftt'),
-            'members_value' => 1,
+            'members_value' => count($this->getMembers($item)),
             'owner_value' => $ownerUser->get('username'),
             'owner_label' => i('Owner', 'ftt'),
             'team_image' => $img ? $img->getSizedImage(420, 280) : false,
@@ -100,8 +113,8 @@ class OrganizationsCollection extends DataCollection {
             'actions' => $actions,
             'create_team_label' => i('Create team'),
             'create_team_url' => Utils::getCurrentUrl().'/create',
-            'edit_team_label' => i('Edit organization', 'ftt'),
-            'edit_team_url' => Utils::getCurrentUrl().'/update',
+            'edit_organization_label' => i('Edit organization', 'ftt'),
+            'edit_organization_url' => Utils::getCurrentUrl().'/update',
             'create_close_url' => Utils::getCurrentUrl()
         ]);
     }
@@ -163,14 +176,14 @@ class OrganizationsCollection extends DataCollection {
             $tabs = array_merge($tabs, [
                     [
                         'key' => 'team-'.$team,
-                        'name' => $cTeam->getName()
+                        'name' => $cTeam->getMeta('title')
                     ]
             ]);
 
             $tabs_content = array_merge($tabs_content, [
                 [
                     'id' => 'team-'.$team,
-                    'content' => $this->getTeamMembers($cTeam)
+                    'content' => $this->editTeamAction($cTeam).$this->getTeamMembers($cTeam)
                 ]
             ]);
         }
@@ -194,6 +207,18 @@ class OrganizationsCollection extends DataCollection {
             'tabs' => $tabs,
             'tabs_content' => $tabs_content
         ]);
+    }
+
+    private function editTeamAction($team) {
+        if($this->isOwner($this->item)) {
+            return '<a 
+                class="btn reveal tipster to-overlay" 
+                refresh-on-close="'.Utils::getCurrentUrl().'" 
+                refresh-target="#organization-detail"
+                href="'.Utils::getCurrentUrl().'/edit-team/'.$team->getID().'" 
+                title="'.i('Edit team', 'ftt').'"><i class="ion-android-create"></i></a>';
+        }
+        return '';
     }
 
     private function getTeamMembers($team) {
@@ -319,6 +344,32 @@ class OrganizationsCollection extends DataCollection {
         return $item->getName();
     }
 
+    private function editTeamContent($item, $teamId) {
+        $team = new CollectionItem($teamId);
+
+        $heading = '<h3>'.i('Update Team', 'ftt').'</h3>';
+        $content = [];
+        $content[] = Fields::text([
+            'label' => i('Team Name', 'ftt'),
+            'key' => 'team_name',
+        ], $team->getMeta('title'));
+        $content[] = Fields::multiselect([
+            'label' => i('Define members', 'ftt'),
+            'key' => 'team_members',
+            'values' => $this->getMultiSelectMembers($item)
+        ], TeamsCollection::getMembers($team));
+        $content[] = Fields::button(i('Save changes', 'ftt'));
+
+        return '<div class="wrapper">'.$heading.App::instance()->render(CORE_TEMPLATE_DIR.'assets/', 'form', [
+            'action' => Utils::getCurrentUrl(),
+            'method' => 'post',
+            'ajax' => true,
+            'ajax_target' => '#slidein-overlay .content',
+            'horizontal' => false,
+            'content' => $content
+        ]).'</div>';
+    }
+
     private function createTeamContent($item) {
         $heading = '<h3>'.i('Create a new Team', 'ftt').'</h3>';
         $content = [];
@@ -341,6 +392,16 @@ class OrganizationsCollection extends DataCollection {
             'horizontal' => false,
             'content' => $content
         ]).'</div>';
+    }
+
+    private function updateTeam($item, $team, $data) {
+        $team = new CollectionItem($team);
+        if(array_key_exists('team_name', $data) && strlen($data['team_name']) > 3) {
+            $team->updateMeta('title', $data['team_name'], 0);
+        }
+
+        $relation = App::instance()->rd->getRelation('ftt_teams_members');
+        $relation->setRightItems($team->getID(), $data['team_members']);
     }
 
     private function updateOrganisation($item, $data) {

@@ -78,7 +78,7 @@ class TeamsCollection extends DataCollection {
     public static function getMembers($item) {
         $relation = App::instance()->rd->getRelation('ftt_teams_members');
         if(is_object($item)) {
-            return array_unique($relation->getOfLeft($item->id, Prepares::AS_IDS_RIGHT));
+            return array_unique($relation->getOfLeft($item->getID(), Prepares::AS_IDS_RIGHT));
         } else {
             return array_unique($relation->getOfLeft($item, Prepares::AS_IDS_RIGHT));
         }

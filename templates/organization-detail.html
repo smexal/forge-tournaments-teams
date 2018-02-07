@@ -17,13 +17,14 @@
                     >
                         {$create_team_label}
                     </button>
-                    <button 
-                        class="btn to-overlay" 
-                        href="{$edit_team_url}"
+                    <a 
+                        class="btn to-overlay tipster has-icon" 
+                        title="{$edit_organization_label}"
+                        href="{$edit_organization_url}"
                         refresh-on-close="{$create_close_url}" refresh-target="#organization-detail"
                     >
-                        {$edit_team_label}
-                    </button>
+                        <i class="ion-android-create"></i>
+                    </a>
                 </div>
             </div>
             {/if}

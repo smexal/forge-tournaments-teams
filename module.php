@@ -128,11 +128,11 @@ class ForgeTournamentsteams extends Module {
 
     public function modifyManageNavigation($navigation) {
         if (Auth::allowed('manage.collection.teams')) {
-            $navigation->removeFromCollections('forge-teams');
+            //$navigation->removeFromCollections('forge-teams');
             //$navigation->removeFromCollections('forge-members');
         }
         if (Auth::allowed('manage.collection.organizations')) {
-            $navigation->removeFromCollections('forge-organizations');
+            //$navigation->removeFromCollections('forge-organizations');
         }
         if (Auth::allowed($this->permission)) {
             $navigation->add('organizations', i('Organizations'), Utils::getUrl(array('manage', 'collections', 'forge-organizations')), 'leftPanel', false, 'allocate');

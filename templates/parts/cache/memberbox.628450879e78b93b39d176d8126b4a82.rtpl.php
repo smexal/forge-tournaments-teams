@@ -14,4 +14,12 @@
         <?php if( isset($additional) ){ ?><p class="discreet"><?php echo $additional;?></p><?php } ?>
 
     </div>
+    <?php if( isset($action) ){ ?>
+
+    <div class="action">
+        <?php echo $action;?>
+
+    </div>
+    <?php } ?>
+
 </div>

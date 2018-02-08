@@ -78,6 +78,29 @@ class OrganizationsCollection extends DataCollection {
             }
         }
 
+        if(count($url_parts) > 3 && ($url_parts[3] == 'remove-member' && is_numeric($url_parts[4]))) {
+            if($this->isOwner($item)) {
+                $memberItem = new CollectionItem($url_parts[4]);
+                $user = new User($memberItem->getMeta('user'));
+                $this->removeMember($url_parts[4]);
+                App::instance()->addMessage(sprintf(i('You removed `%1$s` from your organization', 'ftt'), $user->get('username')));
+                App::instance()->redirect($this->item->url());
+            } else {
+                App::instance()->redirect('denied');
+            }
+        }
+
+        if(count($url_parts) > 3 && ($url_parts[3] == 'owner-change')) {
+            if($this->isOwner($item)) {
+                if(array_key_exists('new_owner', $_POST)) {
+                    $this->changeOwner($_POST['new_owner']);
+                }
+                return $this->changeOwnerContent($item);
+            } else {
+                App::instance()->redirect('denied');
+            }
+        }
+
         if(count($url_parts) > 3 && $url_parts[3] == 'accept_join_request' && is_numeric($url_parts[4])) {
             $this->acceptJoinRequest($item, $url_parts[4]);
             App::instance()->addMessage(i('Request accepted', 'ftt'));
@@ -115,8 +138,34 @@ class OrganizationsCollection extends DataCollection {
             'create_team_url' => Utils::getCurrentUrl().'/create',
             'edit_organization_label' => i('Edit organization', 'ftt'),
             'edit_organization_url' => Utils::getCurrentUrl().'/update',
+            'change_owner_label' => i('Change owner', 'ftt'),
+            'change_owner_url' => Utils::getCurrentUrl().'/owner-change',
             'create_close_url' => Utils::getCurrentUrl()
         ]);
+    }
+
+    /**
+     * Change the owner of an organization.
+     * Has to be a member Collection Item, not a user!
+     * @param  MembersCollectionItem $new_owner dont sent here a user.
+     * @return null
+     */
+    public function changeOwner($new_owner) {
+        $newOwnerItem = new CollectionItem($new_owner);
+        $newOwner = new User($newOwnerItem->getMeta('user'));
+        $this->item->setAuthor($newOwner->get('id'));
+    }
+
+    public function removeMember($memberId) {
+        // remove member from all teams
+        foreach(self::getTeams($this->item) as $team) {
+            $relation = App::instance()->rd->getRelation('ftt_teams_members');
+            $relation->removeByRightID($memberId);
+        }
+
+        // remove from organization
+        $relation = App::instance()->rd->getRelation('ftt_organization_members');
+        $relation->removeByRightID($memberId);
     }
 
     private function createTeam($item, $data) {
@@ -249,6 +298,12 @@ class OrganizationsCollection extends DataCollection {
                 'username' => $user->get('username'),
                 'avatar' => $user->getAvatar() !== null ? $user->getAvatar() : false
             ];
+            if($this->isOwner($item) && $item->getAuthor() !== $user->get('id')) {
+                $args['action'] = '<a href="'.Utils::getUrl(array_merge(Utils::getUriComponents(), ['remove-member', $member->getID()])).'" class="tipster" title="'.i('Remove Member', 'ftt').'"><i class="ion-backspace"></i></a>';
+            }
+            if($item->getAuthor() === $user->get('id')) {
+                $args['action'] = '<span class="ion-star"></span>';
+            }
             $members.= App::instance()->render(MOD_ROOT.'forge-tournaments-teams/templates/parts', 'memberbox', $args);
         }
         return App::instance()->render(MOD_ROOT.'forge-tournaments-teams/templates/parts', 'members_tab', [
@@ -457,6 +512,32 @@ class OrganizationsCollection extends DataCollection {
             'label' => i('Website', 'ftt'),
             'key' => 'team_website',
         ], $this->item->getMeta('website'));
+        $content[] = Fields::button(i('Save changes', 'ftt'));
+        return '<div class="wrapper">'.$heading.App::instance()->render(CORE_TEMPLATE_DIR.'assets/', 'form', [
+            'action' => Utils::getCurrentUrl(),
+            'method' => 'post',
+            'ajax' => true,
+            'ajax_target' => '#slidein-overlay .ajax-content',
+            'horizontal' => false,
+            'content' => $content
+        ]).'</div>';
+    }
+
+    private function changeOwnerContent($item) {
+        $heading = '<h2>'.i('Update organization', 'ftt').'</h2>';
+        $content = [];
+        $members = self::getMembers($item);
+        $membersPrepared = [];
+        foreach($members as $member) {
+            $memberItem = new CollectionItem($member);
+            $user = new User($memberItem->getMeta('user'));
+            $membersPrepared[$member] = $user->get('username');
+        }
+        $content[] = Fields::select([
+            'label' => i('New Organization owner', 'ftt'),
+            'key' => 'new_owner',
+            'values' => $membersPrepared
+        ], 1);
         $content[] = Fields::button(i('Save changes', 'ftt'));
         return '<div class="wrapper">'.$heading.App::instance()->render(CORE_TEMPLATE_DIR.'assets/', 'form', [
             'action' => Utils::getCurrentUrl(),

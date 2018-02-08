@@ -10,4 +10,9 @@
         <h4>{$username}</h4>
         {if="isset($additional)"}<p class="discreet">{$additional}</p>{/if}
     </div>
+    {if="isset($action)"}
+    <div class="action">
+        {$action}
+    </div>
+    {/if}
 </div>

@@ -131,7 +131,7 @@ class OrganizationsCollection extends DataCollection {
             'members_value' => count($this->getMembers($item)),
             'owner_value' => $ownerUser->get('username'),
             'owner_label' => i('Owner', 'ftt'),
-            'team_image' => $img ? $img->getSizedImage(420, 280) : false,
+            'team_image' => $img ? $img->getSizedImage(420, 420) : false,
             'tabs' => $this->getTeamTabs($item),
             'actions' => $actions,
             'create_team_label' => i('Create team'),

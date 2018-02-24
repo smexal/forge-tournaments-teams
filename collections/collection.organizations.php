@@ -396,7 +396,7 @@ class OrganizationsCollection extends DataCollection {
         if(! is_object($item)) {
             $item = new CollectionItem($item);
         }
-        return $item->getName();
+        return $item->getMeta('title');
     }
 
     private function editTeamContent($item, $teamId) {

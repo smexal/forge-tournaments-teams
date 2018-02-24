@@ -25,7 +25,7 @@ class TeamslistingComponent extends ListingComponent {
     public function renderItem($item) {
         $img = new Media($item->getMeta('logo'));
         $args = [
-            'username' => $item->getName(),
+            'username' => $item->getMeta('title'),
             'avatar' => $img ? $img->getUrl() : false,
             'link' => $item->url()
         ];

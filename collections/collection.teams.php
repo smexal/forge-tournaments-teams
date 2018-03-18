@@ -84,6 +84,16 @@ class TeamsCollection extends DataCollection {
         }
     }
 
+    public static function getMembersAsUsers($item) {
+        $members = self::getMembers($item);
+        $users = [];
+        foreach($members as $member) {
+            $i = new CollectionItem($member);
+            $users[] = $i->getMeta('user');
+        }
+        return $users;
+    }
+
     public static function getName($item) {
         if(! is_object($item)) {
             $item = new CollectionItem($item);

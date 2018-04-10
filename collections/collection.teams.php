@@ -72,7 +72,10 @@ class TeamsCollection extends DataCollection {
         }
         $relation = App::instance()->rd->getRelation('ftt_organization_teams');
         $orgas = $relation->getOfRight($team, Prepares::AS_IDS_LEFT);
-        return $orgas[0];
+        if(array_key_exists(0, $orgas)) {
+            return $orgas[0];
+        }
+        return null;
     }
 
     public static function getMembers($item) {

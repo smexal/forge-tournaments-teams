@@ -7,7 +7,6 @@
                     <p>{$description}</p>
                 </div>
             </div>
-            {if="$actions"}
             <div class="row actions">
                 <div class="col-lg-12">
                     <button 
@@ -17,25 +16,26 @@
                     >
                         {$create_team_label}
                     </button>
-                    <a 
-                        class="btn to-overlay tipster has-icon" 
-                        title="{$edit_organization_label}"
-                        href="{$edit_organization_url}"
-                        refresh-on-close="{$create_close_url}" refresh-target="#organization-detail"
-                    >
-                        <i class="ion-android-create"></i>
-                    </a>
-                    <a 
-                        class="btn to-overlay tipster has-icon" 
-                        title="{$change_owner_label}"
-                        href="{$change_owner_url}"
-                        refresh-on-close="{$create_close_url}" refresh-target="#organization-detail"
-                    >
-                        <i class="ion-shuffle"></i>
-                    </a>
+                    {if="$actions"}
+                            <a 
+                                class="btn to-overlay tipster has-icon" 
+                                title="{$edit_organization_label}"
+                                href="{$edit_organization_url}"
+                                refresh-on-close="{$create_close_url}" refresh-target="#organization-detail"
+                            >
+                                <i class="ion-android-create"></i>
+                            </a>
+                            <a 
+                                class="btn to-overlay tipster has-icon" 
+                                title="{$change_owner_label}"
+                                href="{$change_owner_url}"
+                                refresh-on-close="{$create_close_url}" refresh-target="#organization-detail"
+                            >
+                                <i class="ion-shuffle"></i>
+                            </a>
+                    {/if}
                 </div>
             </div>
-            {/if}
             <div class="row facts">
                 <div class="col-lg-6">
                     <p class="discreet">{$members_label}</p>

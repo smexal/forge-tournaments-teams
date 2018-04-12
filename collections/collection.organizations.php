@@ -42,15 +42,16 @@ class OrganizationsCollection extends DataCollection {
         $this->item = $item;
         $url_parts = Utils::getUriComponents();
         if(count($url_parts) > 3 && $url_parts[3] == 'create') {
-            if($this->isOwner($item)) {
+            //if($this->isOwner($item)) {
+            // allow everyone to create a team.
                 if(array_key_exists('team_name', $_POST)) {
                     return $this->createTeam($item, $_POST);
                 }
                 return $this->createTeamContent($item);
 
-            } else {
-                App::instance()->redirect('denied');
-            }
+            //} else {
+                //App::instance()->redirect('denied');
+            //}
         }
         if(count($url_parts) > 3 && $url_parts[3] == 'update') {
             if($this->isOwner($item)) {

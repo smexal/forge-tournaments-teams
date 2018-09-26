@@ -66,6 +66,14 @@ class TeamsCollection extends DataCollection {
         ]);
     }
 
+    public static function getFormedName($orga, $team) {
+        $shorttag = $orga->getMeta('shorttag');
+        if($shorttag) {
+            $shorttag = '['.$shorttag.'] ';
+        }
+        return $shorttag.$team->getMeta('title');
+    }
+
     public static function getOrganization($team) {
         if(is_object($team)) {
             $team = $team->id;
@@ -112,7 +120,7 @@ class TeamsCollection extends DataCollection {
      * Register the subnavigations
      * @return array
      */
-    public function getSubnavigation() {
+    public function getSubnavigation($item) {
         return [
             [
                 'url' => 'members',

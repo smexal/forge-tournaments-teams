@@ -170,6 +170,9 @@ class OrganizationsCollection extends DataCollection {
     }
 
     private function createTeam($item, $data) {
+        if(! $this->isOwner($item)) {
+            return;
+        }
         $metas = [];
         $hasError = false;
 

@@ -9,14 +9,14 @@
             </div>
             <div class="row actions">
                 <div class="col-lg-12">
-                    <button 
-                        class="btn to-overlay" 
-                        href="{$create_team_url}"
-                        refresh-on-close="{$create_close_url}" refresh-target="#organization-detail"
-                    >
-                        {$create_team_label}
-                    </button>
                     {if="$actions"}
+                            <button 
+                                class="btn to-overlay" 
+                                href="{$create_team_url}"
+                                refresh-on-close="{$create_close_url}" refresh-target="#organization-detail"
+                            >
+                                {$create_team_label}
+                            </button>
                             <a 
                                 class="btn to-overlay tipster has-icon" 
                                 title="{$edit_organization_label}"

@@ -46,7 +46,7 @@ class TeamsView extends View {
         ]);
      }
 
-    public function content() {
+    public function content($uri=array()) {
         if(! Auth::any()) {
             App::instance()->redirect('denied');
         }

@@ -21,11 +21,9 @@ class MembersCollection extends DataCollection {
         $this->preferences['single-item'] = i('Member', 'forge-teams');
 
         Auth::registerPermissions('api.collection.forge-members.read');
-
-        $this->custom_fields();
     }
 
-    private function custom_fields() {
+    public function custom_fields() {
         $users = [];
         $users[0] = i('Choose a user', 'ftt');
         foreach(User::getAll() as $user) {

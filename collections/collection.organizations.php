@@ -27,8 +27,6 @@ class OrganizationsCollection extends DataCollection {
         $this->preferences['multilang'] = false;
 
         Auth::registerPermissions('api.collection.forge-organizations.read');
-
-        $this->custom_fields();
     }
 
     private function isOwner($item) {
@@ -567,7 +565,7 @@ class OrganizationsCollection extends DataCollection {
         return $selectValues;
     }
 
-    private function custom_fields() {
+    public function custom_fields() {
         $this->addFields([
             [
                 'key' => 'shorttag',

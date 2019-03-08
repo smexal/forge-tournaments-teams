@@ -20,11 +20,9 @@ class TeamsCollection extends DataCollection {
         $this->preferences['single-item'] = i('Team', 'forge-teams');
 
         Auth::registerPermissions('api.collection.forge-teams.read');
-
-        $this->custom_fields();
     }
 
-    private function custom_fields() {
+    public function custom_fields() {
         $this->addFields([
             [
                 'key' => 'shorttag',

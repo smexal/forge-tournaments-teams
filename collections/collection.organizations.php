@@ -175,7 +175,7 @@ class OrganizationsCollection extends DataCollection {
         $hasError = false;
 
         if(strlen($data['team_name']) > 0) {
-            $metas['title'] = ['value' => $data['team_name']];
+            $metas['title'] = ['value' => strip_tags($data['team_name'])];
         } else {
             App::instance()->addMessage(i('Team could not be created without a name', 'ftt'));
             $hasError = true;
@@ -184,7 +184,7 @@ class OrganizationsCollection extends DataCollection {
 
         if(! $hasError) {
             $team_id = CollectionItem::create([
-                'name' => Utils::methodName($data['team_name']),
+                'name' => Utils::methodName(strip_tags($data['team_name'])),
                 'type' => 'forge-teams',
                 'author' => App::instance()->user->get('id')
             ], $metas);
@@ -454,7 +454,7 @@ class OrganizationsCollection extends DataCollection {
     private function updateTeam($item, $team, $data) {
         $team = new CollectionItem($team);
         if(array_key_exists('team_name', $data) && strlen($data['team_name']) > 3) {
-            $team->updateMeta('title', $data['team_name'], 0);
+            $team->updateMeta('title', strip_tags($data['team_name']), 0);
         }
 
         $relation = App::instance()->rd->getRelation('ftt_teams_members');
@@ -463,16 +463,16 @@ class OrganizationsCollection extends DataCollection {
 
     private function updateOrganisation($item, $data) {
         if(array_key_exists('team_name', $data) && strlen($data['team_name']) > 3) {
-            $item->updateMeta('title', $data['team_name'], 0);
+            $item->updateMeta('title', strip_tags($data['team_name']), 0);
         }
         if(array_key_exists('team_short', $data) && strlen($data['team_short']) > 3) {
-            $item->updateMeta('shorttag', $data['team_short'], 0);
+            $item->updateMeta('shorttag', strip_tags($data['team_short']), 0);
         }
         if(array_key_exists('team_description', $data) && strlen($data['team_description']) > 3) {
-            $item->updateMeta('description', $data['team_description'], 0);
+            $item->updateMeta('description', strip_tags($data['team_description']), 0);
         }
         if(array_key_exists('team_website', $data) && strlen($data['team_website']) > 3) {
-            $item->updateMeta('website', $data['team_website'], 0);
+            $item->updateMeta('website', strip_tags($data['team_website']), 0);
         }
 
         if(strlen($_FILES['team_image']['name']) > 0) {

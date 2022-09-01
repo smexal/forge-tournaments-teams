@@ -134,19 +134,19 @@ class TeamsView extends View {
         $metas = [];
         $hasError = false;
         if(strlen($data['team_short']) > 0) {
-            $metas['shorttag'] = ['value' => $data['team_short']];
+            $metas['shorttag'] = ['value' => strip_tags($data['team_short'])];
         }
         if(strlen($data['team_name']) > 0) {
-            $metas['title'] = ['value' => $data['team_name']];
+            $metas['title'] = ['value' => strip_tags($data['team_name'])];
         } else {
             App::instance()->addMessage(i('Organization could not be created without a name', 'ftt'));
             $hasError = true;
         }
         if(strlen($data['team_description']) > 0) {
-            $metas['description'] = ['value' => $data['team_description']];
+            $metas['description'] = ['value' => strip_tags($data['team_description'])];
         }
         if(strlen($data['team_website']) > 0) {
-            $metas['website'] = ['value' => $data['team_website']];
+            $metas['website'] = ['value' => strip_tags($data['team_website'])];
         }
         $metas['status'] = ['value' => 'published'];
 

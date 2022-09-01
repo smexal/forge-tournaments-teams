@@ -9,7 +9,7 @@ use Forge\Core\Components\ListingComponent;
 
 class TeamslistingComponent extends ListingComponent {
     protected $collection = 'forge-organizations';
-    protected $cssClasses = ['wrapper', 'reveal'];
+    protected $cssClasses = ['wrapper'];
 
     public function prefs() {
         return array(
